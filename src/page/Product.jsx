@@ -3,13 +3,11 @@ import axios from "axios";
 
 const Product = () => {
   const [products, setProducts] = useState([]);
-
   const [form, setForm] = useState({
     name: "",
     price: "",
     quantity: ""
   });
-
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
@@ -19,11 +17,10 @@ const Product = () => {
   const fetchProducts = () => {
     axios.get("http://localhost:5000/product/")
       .then(response => {
-        console.log('Fetched products:', response.data);
         setProducts(response.data);
       })
       .catch(err => {
-        console.error('Error fetching data', err);
+        console.error("Error fetching data", err);
       });
   };
 
@@ -43,7 +40,6 @@ const Product = () => {
     }
 
     if (editingId) {
-      // Update existing product
       axios.put(`http://localhost:5000/product/${editingId}`, {
         name,
         price: Number(price),
@@ -60,7 +56,6 @@ const Product = () => {
           alert("Update failed");
         });
     } else {
-      // Add new product
       axios.post("http://localhost:5000/product/", {
         name,
         price: Number(price),
@@ -85,6 +80,24 @@ const Product = () => {
       quantity: product.quantity
     });
     setEditingId(product._id);
+  };
+
+  const handleDeleteClick = (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      axios.delete(`http://localhost:5000/product/${id}`)
+        .then(() => {
+          alert("Product deleted!");
+          fetchProducts();
+          if (editingId === id) {
+            setEditingId(null);
+            setForm({ name: "", price: "", quantity: "" });
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Delete failed");
+        });
+    }
   };
 
   return (
@@ -136,11 +149,11 @@ const Product = () => {
           {products.map(product => (
             <li key={product._id}>
               <strong>{product.name}</strong> - Rs {product.price} ({product.quantity})
-              <button
-                onClick={() => handleEditClick(product)}
-                style={{ marginLeft: "10px" }}
-              >
-                Update
+              <button onClick={() => handleEditClick(product)} style={{ marginLeft: "10px" }}>
+                Edit
+              </button>
+              <button onClick={() => handleDeleteClick(product._id)} style={{ marginLeft: "10px", color: "red" }}>
+                Delete
               </button>
             </li>
           ))}
